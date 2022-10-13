@@ -1,14 +1,14 @@
-Année: 2022-2023
-----------------
+# Année: 2022-2023
 
-### Travaux pratiques 3
+## Travaux pratiques 3
 
-#### Objectifs
+### Objectifs
 
 -   Comprendre les les pointeurs et les structures.
 -   Comprendre l'espace occupé par les différentes variables en mémoire en utilisant `sizeof`
+-   Utilisation des algorithmes de recherche et tri
 
-#### Exercice 3.1 [★]
+### Exercice 3.1 [★]
 
 
 Vous êtes sur une machine de 64 bits et vous utilisez également un
@@ -17,17 +17,17 @@ testez le code suivant. Quelle est la valeur renvoyée par chacune des
 lignes suivantes ?
 
 1.  sizeof (int)
-2.  sizeof (int *)
-3.  sizeof (int **)
-4.  sizeof (char *)
-5.  sizeof (char **)
-6.  sizeof (char ***)
-7.  sizeof (float *)
-8.  sizeof (float **)
-9.  sizeof (float ***)
+2.  sizeof (int \*)
+3.  sizeof (int \*\*)
+4.  sizeof (char \*)
+5.  sizeof (char \*\*)
+6.  sizeof (char \*\*\*)
+7.  sizeof (float \*)
+8.  sizeof (float \*\*)
+9.  sizeof (float \*\*\*)
 
 
-#### Exercice 3.2 [★]
+### Exercice 3.2 [★]
 
 
 Codez en C un programme *grand_petit.c* qui créer un tableau de 100
@@ -39,22 +39,24 @@ entiers et calculer
 N'utilisez pas scanf.
 
 
-#### Exercice 3.3 [★★]
+### Exercice 3.3 [★★]
 
 
 Écrivez un programme *tri.c* en créant d'abord un tableau de 100
 entiers, puis en les triant par ordre croissant.
 
+**Algorithmes**: par exemple, tri à bulles, tri rapide
 
-#### Exercice 3.4 [★★]
+### Exercice 3.4 [★★]
 
 
 Écrivez un programme *chercher.c* en créant un tableau de 100 entiers et
 puis en cherchant un entier dans ce tableau. Si l'entier est présent
 dans le tableau, affichez le message 'entier présent'.
 
+**Algorithmes**: par exemple, recherche séquentielle 
 
-#### Exercice 3.5 [★★]
+### Exercice 3.5 [★★]
 
 
 Regardez l'article sur la recherche dichotomique:
@@ -64,16 +66,17 @@ entiers et puis en cherchant un entier dans le tableau déjà tri en ordre
 croissant. Si l'entier est présent dans le tableau, affichez le message
 'entier présent'.
 
+**Algorithmes**: par exemple, recherche dichotomique
 
-#### Exercice 3.6 [★★]
+### Exercice 3.6 [★★]
 
 
-Écrivez un programme en créant le fichier *octets.c* et utilisant char
-* et les opérateurs de pointeurs pour voir les octets d'une variable
+Écrivez un programme en créant le fichier *octets.c* et utilisant char \* 
+et les opérateurs de pointeurs pour voir les octets d'une variable
 short, int, long int, float, double et long double.
 
 
-#### Exercice 3.7 [★★★]
+### Exercice 3.7 [★★★]
 
 
 En réutilisant le code de *couleurs.c*, écrivez un programme
@@ -102,20 +105,24 @@ Vous devez afficher
 
 Vous pouvez créer une nouvelle structure pour stocker les couleurs distinctes et leur compte. 
 
-#### Exercice 3.8 [★★★]
+**Algorithmes**: par exemple, tri à bulles, tri rapide
+
+### Exercice 3.8 [★★★]
+
 
 Modifiez le fichier *chercher.c* (le même fichier que celui de l'exercice 3.4) et ajoutez un tableau de 10 phrases (un
 tableau de tableau de caractères). Sans utilisant les fonctions de
 bibliothèques standards ou externes, cherchez si une phrase est dans le
 tableau ou pas. 
 
+**Algorithmes**: par exemple, fonction de hachage
 
-#### Fichiers
+### Fichiers
 
 *chercher.c, couleur_compteur.c, couleurs.c, grand_petit.c, octets.c,
 recherche_dichotomique.c, sizeof.c, tri.c*
 
-#### Instructions
+### Instructions
 
 -   N'oubliez pas les commentaires (nom de fichier, objectif, auteurs,
     les lignes importantes de code etc.). Les commentaires sont notés.

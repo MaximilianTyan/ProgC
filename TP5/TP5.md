@@ -1,13 +1,12 @@
-Année: 2022-2023
-----------------
+# Année: 2022-2023
 
-### Travaux pratiques 5
+## Travaux pratiques 5
 
-#### Objectifs
+### Objectifs
 
 -   Comprendre la programmation client-serveur.
 
-#### Exercice 5.1 [★]
+### Exercice 5.1 [★]
 
 
 Écrivez un programme en créant deux fichiers *repertoire.h* et
@@ -25,7 +24,7 @@ répertoires, si aucun) dans ce répertoire. Vous pouvez utiliser `opendir`,
 `readdir` pour parcourir un répertoire.
 
 
-#### Exercice 5.2 [★]
+### Exercice 5.2 [★]
 
 
 Ajoutez la déclaration suivante en *repertoire.h*
@@ -46,8 +45,10 @@ $ ls -R
 sur la ligne de commande. Testez votre code. Utilisez le principe de la
 fonction récursive.
 
+**Structure de données**: par exemple, liste, pile, file, graphes
+**Algorithmes**: parcours de graphe
 
-#### Exercice 5.3 [★★]
+### Exercice 5.3 [★★]
 
 
 Ajoutez la déclaration suivante en repertoire.h
@@ -62,10 +63,12 @@ des fichiers, des répertoires, des sous-répertoires et des fichiers
 dans les sous-répertoires. Mais cette fois, utilisez for (ou while ou
 do..while) pour implémenter cette fonction. Testez votre code.
 
+**Structure de données**: par exemple, liste, pile, file, graphes
+**Algorithmes**: parcours de graphe
 
-#### Exercice 5.4 [★★]
+### Exercice 5.4 [★★]
 
-##### Client-Serveur
+#### Client-Serveur
 
 Un environnement client-serveur permet un mode de communication sur un
 réseau entre les programmes. Un de ces programmes est appelé serveur qui
@@ -78,7 +81,7 @@ répond aux requêtes d'autres programmes appelés clients. Par exemple,
 
 Référence : <https://fr.wikipedia.org/wiki/Client-serveur>
 
-![](../images/client-server.svg)
+![](../../Projet/images/client-server.svg)
 
 Pour simuler un environnement client-serveur, on va utiliser une seule
 machine en lançant deux terminaux. Sur un des deux terminaux exécutez le
@@ -114,9 +117,9 @@ message et envoie ce message au client. Testez votre code. N'oubliez pas
 d'utiliser make (pour la compilation et la génération des fichiers
 exécutables).
 
-![](../images/client-server-message.svg)
+![](../../Projet/images/client-server-message.svg)
 
-#### Exercice 5.5 [★★★]
+### Exercice 5.5 [★★★]
 
 
 Vous avez remarqué les premiers caractères dans chaque message :
@@ -142,9 +145,9 @@ calcule : 68
 
 Testez votre code avec les numéros flottants et entiers.
 
-![](../images/client-server-calcul.svg)
+![](../../Projet/images/client-server-calcul.svg)
 
-#### Exercice 5.6 [★★★]
+### Exercice 5.6 [★★★]
 
 
 Pour votre dernière question, téléchargez le dossier etudiant. Dans ce
@@ -173,13 +176,14 @@ Vous devrez modifier le serveur pour qu'il puisse lire et répondre aux messages
 
 Pour cet exercice, le serveur ne doit pas lire d'informations provenant des fichiers de l'élève. Le but du serveur est d'effectuer des calculs arithmétiques simples. Seul le client peut lire les fichiers relatifs aux notes des élèves et envoyer une série de messages au serveur pour obtenir la somme totale, la moyenne, etc. 
 
+**Structure de données**: par exemple, liste (simplement chainée), pile, file
 
-#### Fichiers
+### Fichiers
 
 *client.c, client.h, Makefile, repertoire.c, repertoire.h, serveur.c,
 serveur.h*
 
-#### Instructions
+### Instructions
 
 -   N'oubliez pas les commentaires (nom de fichier, objectif, auteurs,
     , les lignes importantes de code etc.). Les commentaires sont notés.
