@@ -16,10 +16,53 @@
 #include "client.h"
 #include "bmp.h"
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+int envoie_recois_calcul(int socketfd)
+{
+
+  char data[1024];
+  // la réinitialisation de l'ensemble des données
+  memset(data, 0, sizeof(data));
+
+  // Demandez à l'utilisateur d'entrer un message
+  char calcul[1024];
+  printf("Votre calcul (A opération B): ");
+  fgets(calcul, sizeof(calcul), stdin);
+  strcpy(data, "calcule: ");
+  strcat(data, calcul);
+
+  int write_status = write(socketfd, data, strlen(data));
+  if (write_status < 0)
+  {
+    perror("erreur ecriture");
+    exit(EXIT_FAILURE);
+  }
+
+  // la réinitialisation de l'ensemble des données
+  memset(data, 0, sizeof(data));
+
+  // lire les données de la socket
+  int read_status = read(socketfd, data, sizeof(data));
+  if (read_status < 0)
+  {
+    perror("erreur lecture");
+    return -1;
+  }
+
+  printf("Résultat: %s\n", data);
+
+  return 0;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
 /*
  * Fonction d'envoi et de réception de messages
  * Il faut un argument : l'identifiant de la socket
  */
+
 
 int envoie_recois_message(int socketfd)
 {
@@ -58,22 +101,28 @@ int envoie_recois_message(int socketfd)
   return 0;
 }
 
-void analyse(char *pathname, char *data)
+///////////////////////////////////////////////////////////////////////////////////////////
+
+/*
+* 
+*/
+
+void analyse(char *pathname, char *data, int colors_nb)
 {
-  // compte de couleurs
+  // Comptage et triage des couleurs uniques d'une image
   couleur_compteur *cc = analyse_bmp_image(pathname);
 
   int count;
-  strcpy(data, "couleurs: ");
-  char temp_string[10] = "10,";
+  char temp_string[10];
+  sprintf(temp_string, "%d,", colors_nb);
   if (cc->size < 10)
   {
     sprintf(temp_string, "%d,", cc->size);
   }
   strcat(data, temp_string);
 
-  // choisir 10 couleurs
-  for (count = 1; count < 11 && cc->size - count > 0; count++)
+  // choisir les colors_nb premières couleurs
+  for (count = 1; count < (colors_nb + 1) && cc->size - count > 0; count++)
   {
     if (cc->compte_bit == BITS32)
     {
@@ -90,11 +139,26 @@ void analyse(char *pathname, char *data)
   data[strlen(data) - 1] = '\0';
 }
 
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+
 int envoie_couleurs(int socketfd, char *pathname)
 {
   char data[1024];
   memset(data, 0, sizeof(data));
-  analyse(pathname, data);
+
+  // Choix du nombre de couleurs
+  int colors_nb = 10;
+  printf("Nombre de couleurs à afficher: ");
+  scanf("%d", &colors_nb);
+
+  strcat(data, "couleurs: ");
+
+  // Analyse de l'image (retourne les X premières couleurs de l'image)
+  analyse(pathname, data, colors_nb);
+
+  printf("\nMessage final:\n%s\n", data);
 
   int write_status = write(socketfd, data, strlen(data));
   if (write_status < 0)
@@ -105,6 +169,24 @@ int envoie_couleurs(int socketfd, char *pathname)
 
   return 0;
 }
+
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+
+int readfile(char *pathname, int client_socket_fd) 
+{
+  return 0;
+}
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
 
 int main(int argc, char **argv)
 {
@@ -141,16 +223,20 @@ int main(int argc, char **argv)
     perror("connection serveur");
     exit(EXIT_FAILURE);
   }
-  if (argc != 2)
+  if (*argv[1] == 'c') //calculate
+  {
+    envoie_recois_calcul(socketfd);
+  }
+  else if (*argv[1] == 'p') //plot
+  {
+    // envoyer et recevoir les couleurs prédominantes
+    // d'une image au format BMP (filepath = argv[2])
+    envoie_couleurs(socketfd, argv[2]);
+  }
+  else //message
   {
     // envoyer et recevoir un message
     envoie_recois_message(socketfd);
-  }
-  else
-  {
-    // envoyer et recevoir les couleurs prédominantes
-    // d'une image au format BMP (argv[1])
-    envoie_couleurs(socketfd, argv[1]);
   }
 
   close(socketfd);

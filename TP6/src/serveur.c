@@ -16,7 +16,13 @@
 
 #include "serveur.h"
 
-void plot(char *data)
+//////////////////////////////////////////////////////////////////////////////////////////
+
+/*
+* Afficher les couleurs données sous forme de cercle
+*/
+
+void plot(char *data, int nb_colors)
 {
 
   // Extraire le compteur et les couleurs RGB
@@ -29,7 +35,7 @@ void plot(char *data)
   fprintf(p, "set xrange [-15:15]\n");
   fprintf(p, "set yrange [-15:15]\n");
   fprintf(p, "set style fill transparent solid 0.9 noborder\n");
-  fprintf(p, "set title 'Top 10 colors'\n");
+  fprintf(p, "set title 'Top %d colors'\n", nb_colors);
   fprintf(p, "plot '-' with circles lc rgbcolor variable\n");
   while (1)
   {
@@ -48,7 +54,8 @@ void plot(char *data)
     else
     {
       // Le numéro 36, parceque 360° (cercle) / 10 couleurs = 36
-      fprintf(p, "0 0 10 %d %d 0x%s\n", (count - 1) * 36, count * 36, token + 1);
+      int color_angle = 360/nb_colors;
+      fprintf(p, "0 0 10 %d %d 0x%s\n", (count - 1) * color_angle, count * color_angle, token + 1);
     }
     count++;
   }
@@ -57,10 +64,12 @@ void plot(char *data)
   pclose(p);
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////
+
 /* renvoyer un message (*data) au client (client_socket_fd)
  */
 int renvoie_message(int client_socket_fd, char *data)
-{
+{ 
   int data_size = write(client_socket_fd, (void *)data, strlen(data));
 
   if (data_size < 0)
@@ -70,6 +79,47 @@ int renvoie_message(int client_socket_fd, char *data)
   }
   return (EXIT_SUCCESS);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+int calculate(int client_socket_fd, char *data) {
+  float a, b, result;
+  char op;
+  sscanf(data, "calcule: %f %c %f", &a, &op, &b);
+  switch (op) {
+    case '+':
+      result =  a + b;
+      break;
+
+    case '-':
+      result =  a - b;
+      break;
+
+    case '*':
+      result = a * b;
+      break;
+
+    case '/':
+      result = a / b;
+      break;
+
+    default:
+      printf("'i%c' operation not implemented", op);
+      break;
+  }
+
+  // la réinitialisation de l'ensemble des données
+  size_t size = sizeof(data);
+  memset(data, 0, size);
+
+  sprintf(data, "%f", result);
+
+  renvoie_message(client_socket_fd, data);
+  return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 /* accepter la nouvelle connection d'un client et lire les données
  * envoyées par le client. En suite, le serveur envoie un message
@@ -105,25 +155,41 @@ int recois_envoie_message(int socketfd)
   /*
    * extraire le code des données envoyées par le client.
    * Les données envoyées par le client peuvent commencer par le mot "message :" ou un autre mot.
+   * Si le message commence par "plot:", la première valeur sera le nombre de couleurs
    */
-  printf("Message recu: %s\n", data);
-  char code[10];
-  sscanf(data, "%s", code);
+  printf("Message recu: \n%s\n", data);
 
   // Si le message commence par le mot: 'message:'
-  if (strcmp(code, "message:") == 0)
-  {
+  if (strncmp(data, "message:", strlen("message:")) == 0)
+  { 
+    //printf("Message recieved\n");
     renvoie_message(client_socket_fd, data);
+  }
+  else if (strncmp(data, "couleurs:", strlen("couleurs:")) == 0)
+  { 
+    //printf("Colors recieved\n");
+    int nb_colors = 0;
+    char colors_data[1024];
+    sscanf(data, "couleurs:%d,%s", &nb_colors, colors_data);
+
+    plot(colors_data, nb_colors);
+  }
+  else if (strncmp(data, "calcule:", strlen("calcule:")) == 0) 
+  {
+    calculate(client_socket_fd, data);
   }
   else
   {
-    plot(data);
+    printf("No matching pattern detected\n");
   }
 
   // fermer le socket
   close(socketfd);
   return (EXIT_SUCCESS);
 }
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main()
 {

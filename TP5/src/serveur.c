@@ -20,7 +20,13 @@
  */
 int renvoie_message(int client_socket_fd, char *data)
 {
-  int data_size = write(client_socket_fd, (void *)data, strlen(data));
+  ///////// CODE MODIFIÉ /////////
+  printf("From Client:\n, %s", data);
+  printf("Entrez une réponse\n");
+  char response[1024];
+  fgets(response, sizeof(response), stdin);
+  int data_size = write(client_socket_fd, (void *)response, strlen(response));
+  ///////////////////////////////
 
   if (data_size < 0)
   {
@@ -29,6 +35,54 @@ int renvoie_message(int client_socket_fd, char *data)
   }
   return (EXIT_SUCCESS);
 }
+
+////////////////////////////////
+
+int recois_numeros_calcule(int client_socket_fd, char *data)
+{
+  printf("From Client:\n, %s", data);
+  printf("Entrez une réponse\n");
+  char response[1024];
+
+  float a, b, result;
+  char op;
+  sscanf(data, "calcule: %f %c %f", &a, &op, &b);
+  switch (op) {
+	case '+':
+		result =  a + b;
+		break;
+
+	case '-':
+		result =  a - b;
+		break;
+
+	case '*':
+		result = a * b;
+		break;
+
+	case '/':
+		result = a / b;
+		break;
+
+	default:
+		printf("'i%c' operation not implemented", op);
+		break;
+  }
+
+  sprintf(response, "%f", result);
+  int data_size = write(client_socket_fd, (void *)response, strlen(response));
+
+  if (data_size < 0)
+  {
+    perror("erreur ecriture");
+    return (EXIT_FAILURE);
+  }
+  return (EXIT_SUCCESS);
+}
+
+///////////////////////////////
+
+
 
 /* accepter la nouvelle connection d'un client et lire les données
  * envoyées par le client. En suite, le serveur envoie un message
@@ -74,6 +128,13 @@ int recois_envoie_message(int socketfd)
   {
     renvoie_message(client_socket_fd, data);
   }
+  /////////////////////
+  // Si le message commence par le mot: 'calcule:'
+  else if (strcmp(code, "calcule:") == 0) {
+    recois_numeros_calcule(client_socket_fd, data);
+  }
+
+  //////////
 
   // fermer le socket
   close(socketfd);

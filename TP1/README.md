@@ -1,6 +1,5 @@
 # Bibliothèques
 * stdio.h
-*
 
 # Références
 * Site tutorialspoint.com
@@ -13,5 +12,4 @@
 
 # Commentaires
 * Auncun
-* 
 

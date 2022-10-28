@@ -98,6 +98,8 @@ couleur_compteur *analyse_bmp_image(char *nom_de_fichier)
     couleur c;
     c.compte_bit = BITS24;
     c.c.c24 = c24;
+    
+    // Comptage et triage des couleurs uniques
     cc = compte_couleur(&c, binfo_header.taille_image / 3);
     trier_couleur_compteur(cc);
   }
