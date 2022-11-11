@@ -12,25 +12,38 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <fcntl.h>
 
 #include "client.h"
 #include "bmp.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-int envoie_recois_calcul(int socketfd)
+
+int isjson = 0;
+
+
+int envoie_recois_calcul(int socketfd, char *argument)
 {
 
   char data[1024];
   // la réinitialisation de l'ensemble des données
   memset(data, 0, sizeof(data));
-
-  // Demandez à l'utilisateur d'entrer un message
-  char calcul[1024];
-  printf("Votre calcul (A opération B): ");
-  fgets(calcul, sizeof(calcul), stdin);
   strcpy(data, "calcule: ");
-  strcat(data, calcul);
+
+  char calcul[1024];
+
+  if (!isjson) {
+      // Demandez à l'utilisateur d'entrer un message
+
+    printf("Votre calcul (A opération B): ");
+    fgets(calcul, sizeof(calcul), stdin);
+    calcul[strlen(calcul)] = '\0';
+
+    strcat(data, calcul);
+  } else {
+    strcat(data, argument);
+  }
 
   int write_status = write(socketfd, data, strlen(data));
   if (write_status < 0)
@@ -64,19 +77,27 @@ int envoie_recois_calcul(int socketfd)
  */
 
 
-int envoie_recois_message(int socketfd)
+int envoie_recois_message(int socketfd, char *argument)
 {
 
   char data[1024];
   // la réinitialisation de l'ensemble des données
   memset(data, 0, sizeof(data));
+  strcat(data, "message: ");
 
-  // Demandez à l'utilisateur d'entrer un message
-  char message[1024];
-  printf("Votre message (max 1000 caracteres): ");
-  fgets(message, sizeof(message), stdin);
-  strcpy(data, "message: ");
-  strcat(data, message);
+  char message[1000];
+
+
+  if (!isjson) {
+      // Demandez à l'utilisateur d'entrer un message
+
+    printf("Votre message (max 1000 caracteres): ");
+    fgets(message, sizeof(message), stdin);
+    message[strlen(message)] = '\0';
+    strcat(data, message);
+  } else {
+    strcat(data, argument);
+  }
 
   int write_status = write(socketfd, data, strlen(data));
   if (write_status < 0)
@@ -147,18 +168,21 @@ int envoie_couleurs(int socketfd, char *pathname)
 {
   char data[1024];
   memset(data, 0, sizeof(data));
-
-  // Choix du nombre de couleurs
-  int colors_nb = 10;
-  printf("Nombre de couleurs à afficher: ");
-  scanf("%d", &colors_nb);
-
   strcat(data, "couleurs: ");
 
-  // Analyse de l'image (retourne les X premières couleurs de l'image)
-  analyse(pathname, data, colors_nb);
+  if (!isjson) {
+    // Choix du nombre de couleurs
+    int colors_nb = 10;
+    printf("Nombre de couleurs à afficher: ");
+    scanf("%d", &colors_nb);
 
-  printf("\nMessage final:\n%s\n", data);
+    // Analyse de l'image (retourne les X premières couleurs de l'image)
+    analyse(pathname, data, colors_nb);
+
+    printf("\nMessage final:\n%s\n", data);
+  } else {
+    strcat(data, pathname); //pathname variable is here used to send direct data
+  }
 
   int write_status = write(socketfd, data, strlen(data));
   if (write_status < 0)
@@ -174,110 +198,208 @@ int envoie_couleurs(int socketfd, char *pathname)
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 
-int readfile(char *pathname, int client_socket_fd) 
-{ 
+int readfile(char *pathname, int socketfd) 
+{
 
   int fd = open(pathname, O_RDONLY);
 
-  // Scanning flags
-  //int openQuote = 0;
-  //int openBracket = 0;
-  //int codeflag = 0;
+  char message[1024];
+  memset(message, 0, sizeof(message));
 
-  char letter = "A";
-  char scan_string[32];
+  char letter = 'A';
+  char scan_string[16];
   char *scanptr = scan_string;
   memset(scan_string, 0, sizeof(scan_string));
 
-  int table[][] = {
-    {},
-    {},
-    {},
-    {}
-  }
+  int messagetype = 0;
+  // 0: message
+  // 1: calcul
+  // 2: couleurs
 
+  int table[4][4] = {
+    {0,1,0,0}, //attente de code
+    {1,2,1,1}, // lecture du code
+    {2,2,3,2}, // attente d'argument
+    {3,3,3,0} // lecture d'argument
+  };
+  int conditionswitch = 0;
+  int state = 0;
+  int prevstate = 0;
 
+  int readingmessage = 0;
 
-  while (letter != NULL) {
-    read(fd, letter, 1);
+  // Scanning loop
+  while (read(fd, &letter, 1)) {
     
     // Ignored characters
-    if (letter == ' ' || letter == '\n' || letter == ',') { 
-      continue; 
+    if (state != 3) {
+      if (letter == ' ' || letter == '\n') { 
+        continue; 
+      }
     }
 
+    switch (letter) {
+      case '"':
+        conditionswitch = 1;
+        break;
+      
+      case '[':
+        conditionswitch = 2;
+        break;
+      
+      case ']':
+        conditionswitch = 3;
+        break;
+      
+      default:
+        conditionswitch = 0;
+    }
 
-    if ""
-
-
-
-
-
-
-
-
+    prevstate = state;
+    state = table[state][conditionswitch];
 
     /*
-    // Opening / Closing characters
-    else if (letter == '[') {
-      openBracket = 1;
+    if (prevstate != state) {
+      printf("NEW STATE: %d->%d (letter: %c)\n", prevstate, state, letter);
     }
-    else if (letter == ']') {
-      openBracket = 0;
-    }
+    */
 
-    else if (letter == '"') {
-      // NOT operator
-      openQuote = (1 & ~openQuote);
 
-      if (openQuote) { //  opening quote: reset string buffer
-          memset(scan_string, 0, sizeof scan_string);
-          scanptr = scan_string;
+
+    // code has been read, proceeds to compare the code
+    if (state == 2 && prevstate == 1) { 
+      if (strcmp(scan_string, "message") == 0) {
+        printf("CODE MESSAGE: '%s'\n", scan_string);
+        messagetype = 0;
       }
-      else {  // closing quote, compare stored buffer
-        // "code" field
-        if (strncmp(scan_string, "code", sizeof "code") == 0) {
-          codeflag = 1;
-        }
 
+      else if (strcmp(scan_string, "calcule") == 0) {
+        printf("CODE CALCULE: '%s'\n", scan_string);
+        messagetype = 1;
+      }
 
-        else if (codeflag && strncmp(scan_string, "message", sizeof "message")) {
+      else if (strcmp(scan_string, "couleurs") == 0) {
+        printf("CODE COULEURS: '%s'\n", scan_string);
+        messagetype = 2;
+      }
 
-        }
-
-        else if (codeflag && strncmp(scan_string, "calcule", sizeof "calcule")) {
-
-        }
-
-        else if (codeflag && strncmp(scan_string, "couleurs", sizeof "couleurs")) {
-
-        }
-
-
-     
-        
-
-
+      else {
+        state = 0; //if code not valid, reset
+        printf("INVALID CODE: '%s'\n", scan_string);
+        continue;
       }
     }
+    
+    // reset scan buffer to prepare for next scan
+    if ( (state == 1 && prevstate == 0) || (state == 3 && prevstate == 2)) {
+        printf("RESET SCAN BUFFER: ");
+        //memset(scan_string, 0, sizeof(scan_string));
+        for (int i=0; i <= (int) sizeof(scan_string); i++) {
+            scan_string[i] = '\0';
+          }
+        scanptr = scan_string;
+        printf("'%s'\n", message);
+    }
 
-    if (openQuote) {
-        // saves characters in buffer for comparison
-        *(scanptr) = letter;
-        scanptr ++;
-      }*/
-  } //scan end
+    // writing string buffers
+    if (state == 1) {
+      if ( letter == '"' || letter == '[' 
+            || letter == ']' || letter == ' ') {
+        continue;
+      }
+      // read code
+      *(scanptr) = letter;
+      scanptr ++;
+    }
 
-  return 0;
+    if (state == 3) {
+      // used to supress spaces outside ou quotes
+      if (letter  == '"') {
+        readingmessage = !readingmessage;
+        continue;
+      }
+      if (!readingmessage && letter == ' ') {
+        continue;
+      }
+      
+      if (letter == '[' || letter == ']') {
+        continue;
+      }
+
+      strcat(message, &letter);
+    }
+
+    // argument have been read, sending message
+    if ( state == 0 && prevstate == 3 ) {
+
+      switch (messagetype) {
+        case 0: //message
+          printf("SENDING MESSAGE: '%s'\n", message);
+          envoie_recois_message(socketfd, message);
+          break;
+
+
+        case 1: // calcul
+          for (int i=0; i < (int) strlen(message); i++) {
+            if (message[i] == ',') {
+              message[i] = ' ';
+            }
+          }
+          
+          printf("SENDING CALCUL: '%s'\n", message);
+          envoie_recois_calcul(socketfd, message);
+          break;
+
+
+        case 2: //couleurs
+          char data[1024];
+          memset(data, 0, sizeof data);
+          
+          // count different colors for the length prefix
+          // number of colors = number of separators + 1
+          int colours_count = 1;
+          for (int i=0; i < (int) strlen(message); i++) {
+            if (message[i] == ',') {
+              colours_count ++;
+            }
+          }
+          // adds prefix and initial '#' for the first color
+          char countstr[8];
+          memset(data, 0, sizeof countstr);
+          sprintf(countstr, "%d,#", colours_count);
+          strcpy(data, countstr);
+
+
+          char formatted_data[1024];
+          char *fdata_ptr = formatted_data;
+          memset(formatted_data, 0, sizeof formatted_data);
+
+          
+          // adds '#' in front of every color
+          for (int i = 0; i < (int) strlen(message); i++) {
+            *(fdata_ptr++) = message[i];
+            if (message[i] == ',') {
+              *(fdata_ptr++) = '#';
+            }
+          }
+          
+
+          strcat(data, formatted_data);
+
+          printf("SENDING COULEURS: '%s'\n", data);
+          envoie_couleurs(socketfd, data);
+          break;
+      }
+      printf("MESSAGE SENT\n");
+    }
+  
+  //scan end
+  }
+    return 0;
+
 }
 
-
-
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
 
 
 int main(int argc, char **argv)
@@ -288,7 +410,7 @@ int main(int argc, char **argv)
 
   if (argc < 2)
   {
-    printf("usage: ./client chemin_bmp_image\n");
+    printf("usage: command argument\n");
     return (EXIT_FAILURE);
   }
 
@@ -315,9 +437,20 @@ int main(int argc, char **argv)
     perror("connection serveur");
     exit(EXIT_FAILURE);
   }
-  if (*argv[1] == 'c') //calculate
+
+
+  if (strcmp(argv[1], "json") == 0) {
+    isjson = 1;
+  }
+
+
+  if (isjson) {
+    readfile(argv[2], socketfd);
+  }
+
+  else if (*argv[1] == 'c') //calculate
   {
-    envoie_recois_calcul(socketfd);
+    envoie_recois_calcul(socketfd, argv[2]);
   }
   else if (*argv[1] == 'p') //plot
   {
@@ -328,7 +461,7 @@ int main(int argc, char **argv)
   else //message
   {
     // envoyer et recevoir un message
-    envoie_recois_message(socketfd);
+    envoie_recois_message(socketfd, argv[2]);
   }
 
   close(socketfd);

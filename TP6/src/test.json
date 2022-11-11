@@ -1,0 +1,16 @@
+[
+    {                
+    "code" : "message",                
+    "valeurs" : [ "bonjour"]              
+    },
+
+    { 
+    "code" : "calcule",                
+    "valeurs" : [ "+", "23", "45" ]              
+    },             
+
+    {                
+    "code" : "couleurs",                
+    "valeurs" : [ "ffffff", "bbbbbb","555555","000000"]              
+    }
+]
