@@ -175,7 +175,99 @@ int envoie_couleurs(int socketfd, char *pathname)
 
 
 int readfile(char *pathname, int client_socket_fd) 
-{
+{ 
+
+  int fd = open(pathname, O_RDONLY);
+
+  // Scanning flags
+  //int openQuote = 0;
+  //int openBracket = 0;
+  //int codeflag = 0;
+
+  char letter = "A";
+  char scan_string[32];
+  char *scanptr = scan_string;
+  memset(scan_string, 0, sizeof(scan_string));
+
+  int table[][] = {
+    {},
+    {},
+    {},
+    {}
+  }
+
+
+
+  while (letter != NULL) {
+    read(fd, letter, 1);
+    
+    // Ignored characters
+    if (letter == ' ' || letter == '\n' || letter == ',') { 
+      continue; 
+    }
+
+
+    if ""
+
+
+
+
+
+
+
+
+
+    /*
+    // Opening / Closing characters
+    else if (letter == '[') {
+      openBracket = 1;
+    }
+    else if (letter == ']') {
+      openBracket = 0;
+    }
+
+    else if (letter == '"') {
+      // NOT operator
+      openQuote = (1 & ~openQuote);
+
+      if (openQuote) { //  opening quote: reset string buffer
+          memset(scan_string, 0, sizeof scan_string);
+          scanptr = scan_string;
+      }
+      else {  // closing quote, compare stored buffer
+        // "code" field
+        if (strncmp(scan_string, "code", sizeof "code") == 0) {
+          codeflag = 1;
+        }
+
+
+        else if (codeflag && strncmp(scan_string, "message", sizeof "message")) {
+
+        }
+
+        else if (codeflag && strncmp(scan_string, "calcule", sizeof "calcule")) {
+
+        }
+
+        else if (codeflag && strncmp(scan_string, "couleurs", sizeof "couleurs")) {
+
+        }
+
+
+     
+        
+
+
+      }
+    }
+
+    if (openQuote) {
+        // saves characters in buffer for comparison
+        *(scanptr) = letter;
+        scanptr ++;
+      }*/
+  } //scan end
+
   return 0;
 }
 
