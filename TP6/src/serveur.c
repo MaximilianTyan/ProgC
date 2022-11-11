@@ -22,8 +22,31 @@
 * Afficher les couleurs données sous forme de cercle
 */
 
-void plot(char *data, int nb_colors)
-{
+int check_val(char val) {
+  char filter[] = "0123456789.,;#abcdefghijklmnopqrstuvwxyz";
+  for (int i=0; i < (int) strlen(filter); i++) {
+      if (val == filter[i]) {
+        return 1;
+      }
+    }
+  return 0;
+}
+
+
+void plot(char *rawdata, int nb_colors)
+{ 
+  char data[1024];
+  char *dataptr = data;
+  memset(data, 0, sizeof data);
+
+  for (int i=0; i < (int) strlen(rawdata); i++) {
+    if (check_val(rawdata[i])) {
+      *(dataptr++) = rawdata[i];
+    }
+  }
+  printf("Raw: %lu, Clean: %lu\n", strlen(rawdata), strlen(data));
+
+
   printf("Plotting: %s\n", data);
   // Extraire le compteur et les couleurs RGB
   FILE *p = popen("gnuplot -persist", "w");
@@ -189,71 +212,73 @@ int recois_envoie_message(int socketfd)
   char data[1024];
 
   unsigned int client_addr_len = sizeof(client_addr);
-
-  // nouvelle connection de client
-  int client_socket_fd = accept(socketfd, (struct sockaddr *)&client_addr, &client_addr_len);
-  if (client_socket_fd < 0)
-  {
-    perror("accept");
-    return (EXIT_FAILURE);
-  }
-  
-  // la réinitialisation de l'ensemble des données
-    memset(data, 0, sizeof(data));
-
   while (1) {
-
-    // lecture de données envoyées par un client
-    int data_size = read(client_socket_fd, (void *)data, sizeof(data));
-
-    if (data_size == 0) {
-      continue;
-    }
-
-    if (data_size < 0)
+    // nouvelle connection de client
+    int client_socket_fd = accept(socketfd, (struct sockaddr *)&client_addr, &client_addr_len);
+    if (client_socket_fd < 0)
     {
-      perror("erreur lecture");
+      perror("accept");
       return (EXIT_FAILURE);
     }
+    printf("CONNECTION ACCEPTED\n");
+    
+    // la réinitialisation de l'ensemble des données
+      memset(data, 0, sizeof(data));
+      int data_size = 1;
 
-    /*
-    * extraire le code des données envoyées par le client.
-    * Les données envoyées par le client peuvent commencer par le mot "message :" ou un autre mot.
-    * Si le message commence par "plot:", la première valeur sera le nombre de couleurs
-    */
-    printf("----- REQUEST -----\n");
-    printf("%s\n", data);
+    while (data_size) {
+      data_size = read(client_socket_fd, (void *)data, sizeof(data));
+      // lecture de données envoyées par un client
+      
+      if (data_size == 0) {
+        continue;
+      }
 
-    // Si le message commence par le mot: 'message:'
-    if (strncmp(data, "message:", strlen("message:")) == 0)
-    { 
-      //printf("Message recieved\n");
-      renvoie_message(client_socket_fd, data);
-    }
-    else if (strncmp(data, "couleurs:", strlen("couleurs:")) == 0)
-    { 
-      //printf("Colors recieved\n");
-      int nb_colors = 0;
-      char colors_data[1024];
-      sscanf(data, "couleurs:%d,%s", &nb_colors, colors_data);
+      if (data_size < 0)
+      {
+        perror("erreur lecture");
+        return(EXIT_FAILURE);
+      }
+      
 
-      plot(colors_data, nb_colors);
-    }
-    else if (strncmp(data, "calcule:", strlen("calcule:")) == 0) 
-    {
-      calculate(client_socket_fd, data);
-    }
-    else
-    {
-      printf("No matching pattern detected\n");
-    }
+      /*
+      * extraire le code des données envoyées par le client.
+      * Les données envoyées par le client peuvent commencer par le mot "message :" ou un autre mot.
+      * Si le message commence par "plot:", la première valeur sera le nombre de couleurs
+      */
+      printf("----- REQUEST -----\n");
+      printf("%s\n", data);
+
+      // Si le message commence par le mot: 'message:'
+      if (strncmp(data, "message:", strlen("message:")) == 0)
+      { 
+        //printf("Message recieved\n");
+        renvoie_message(client_socket_fd, data);
+      }
+      else if (strncmp(data, "couleurs:", strlen("couleurs:")) == 0)
+      { 
+        //printf("Colors recieved\n");
+        int nb_colors = 0;
+        char colors_data[1024];
+        sscanf(data, "couleurs:%d,%s", &nb_colors, colors_data);
+
+        plot(colors_data, nb_colors);
+      }
+      else if (strncmp(data, "calcule:", strlen("calcule:")) == 0) 
+      {
+        calculate(client_socket_fd, data);
+      }
+      else
+      {
+        printf("No matching pattern detected\n");
+      }
+          // fermer le socket
+    } // accept loop
+    close(client_socket_fd);
   }
+    return(EXIT_SUCCESS);
+  } 
 
-    // fermer le socket
-  close(socketfd);
-  
-  return (EXIT_SUCCESS);
-}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

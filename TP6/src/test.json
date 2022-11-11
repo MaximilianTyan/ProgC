@@ -11,6 +11,6 @@
 
     {                
     "code" : "couleurs",                
-    "valeurs" : [ "ffffff", "bbbbbb","555555","000000"]              
+    "valeurs" : [ "ffffff","00ffff","ff00ff","ffff00","ff0000","00ff00","0000ff","000000"]              
     }
 ]
